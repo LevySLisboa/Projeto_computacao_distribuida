@@ -17,6 +17,7 @@ public class Aluno {
     private Long id;
     private String cpf;
     private String name;
+    private String senha_hash;
     private String email;
     private String curso;
     @ElementCollection(fetch = FetchType.EAGER)

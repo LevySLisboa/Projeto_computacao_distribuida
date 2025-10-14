@@ -15,7 +15,7 @@ public class Professor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name,email;
+    private String name,email,senha_hash;
     @ElementCollection
     @CollectionTable(name = "professor_turmas", joinColumns = @JoinColumn(name = "professor_id"))
     @Column(name = "turma")

@@ -23,5 +23,5 @@ public class Aluno {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "aluno_aulas", joinColumns = @JoinColumn(name = "aluno_id"))
     @Column(name = "nome_aula")
-    private List<String> aulas; //String temporariamente
+    private List<String> aulas;
 }

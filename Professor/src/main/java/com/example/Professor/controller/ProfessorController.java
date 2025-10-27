@@ -1,5 +1,6 @@
 package com.example.Professor.controller;
 
+import com.example.Professor.kafka.KafkaProducer;
 import com.example.Professor.model.Professor;
 import com.example.Professor.service.ProfessorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,9 @@ import java.util.Map;
 public class ProfessorController {
     @Autowired
     private ProfessorService serv;
+
+    @Autowired
+    private KafkaProducer producer;
 
     @PostMapping("/criarProfessor")
     public ResponseEntity<Professor> criar(@RequestBody Professor professor) {
@@ -86,5 +90,10 @@ public class ProfessorController {
         String horario = body.get("horario");
         Professor atualizado = serv.removerHorario(id, horario);
         return (atualizado != null) ? ResponseEntity.ok(atualizado) : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/enviar-mensagem")
+    public void enviarMensagem(@RequestParam String msg) {
+        producer.sendMessage("notificacoes", msg);
     }
 }

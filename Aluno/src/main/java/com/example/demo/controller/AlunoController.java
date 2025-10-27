@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.kafka.KafkaProducer;
 import com.example.demo.model.Aluno;
 import com.example.demo.service.AlunoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,9 @@ import java.util.List;
 public class AlunoController {
     @Autowired
     private AlunoService serv;
+
+    @Autowired
+    private KafkaProducer producer;
 
     @PostMapping("/criarAluno")
     public ResponseEntity<Aluno> criarAluno (@RequestBody Aluno aluno){
@@ -34,5 +38,9 @@ public class AlunoController {
     @GetMapping("/todos")
     public ResponseEntity<List<Aluno>> acharTodos (){
         return ResponseEntity.ok().body(serv.acharTodos());
+    }
+    @PostMapping("/enviar-mensagem")
+    public void enviarMensagem(@RequestParam String msg) {
+        producer.sendMessage("para-professor", msg);
     }
 }

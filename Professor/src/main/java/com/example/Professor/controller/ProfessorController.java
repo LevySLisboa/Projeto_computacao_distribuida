@@ -94,6 +94,6 @@ public class ProfessorController {
 
     @PostMapping("/enviar-mensagem")
     public void enviarMensagem(@RequestParam String msg) {
-        producer.sendMessage("notificacoes", msg);
+        producer.sendMessage("para-aluno", msg);
     }
 }

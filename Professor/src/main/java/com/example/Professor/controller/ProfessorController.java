@@ -13,36 +13,51 @@ import java.util.Map;
 @RestController
 @RequestMapping("/professor")
 public class ProfessorController {
+
     @Autowired
     private ProfessorService serv;
 
     @Autowired
     private KafkaProducer producer;
 
+    // Criar professor
     @PostMapping("/criarProfessor")
     public ResponseEntity<Professor> criar(@RequestBody Professor professor) {
         Professor salvo = serv.salvar(professor);
+        String msg = "Novo professor cadastrado: " + salvo;
+        producer.sendMessage("para-tecnico", msg);
         return ResponseEntity.ok(salvo);
     }
 
     // Listar todos
     @GetMapping("/todos")
     public ResponseEntity<List<Professor>> listar() {
-        return ResponseEntity.ok(serv.listar());
+        List<Professor> professores = serv.listar();
+        String msg = "Listagem completa de professores (" + professores.size() + " registros)";
+        producer.sendMessage("para-tecnico", msg);
+        return ResponseEntity.ok(professores);
     }
 
     // Buscar por ID
     @GetMapping("/{id}")
     public ResponseEntity<Professor> buscar(@PathVariable Long id) {
         Professor p = serv.buscar(id);
-        return (p != null) ? ResponseEntity.ok(p) : ResponseEntity.notFound().build();
+        if (p != null) {
+            String msg = "Consulta de professor por ID " + id + ": " + p;
+            producer.sendMessage("para-tecnico", msg);
+            return ResponseEntity.ok(p);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    // Atualizar
+    // Atualizar professor
     @PutMapping("/{id}")
     public ResponseEntity<Professor> atualizar(@PathVariable Long id, @RequestBody Professor professor) {
         Professor existente = serv.buscar(id);
-        if (existente == null) return ResponseEntity.notFound().build();
+        if (existente == null) {
+            return ResponseEntity.notFound().build();
+        }
 
         existente.setName(professor.getName());
         existente.setEmail(professor.getEmail());
@@ -50,13 +65,20 @@ public class ProfessorController {
         existente.setHorarios(professor.getHorarios());
 
         Professor atualizado = serv.salvar(existente);
+        String msg = "Professor atualizado: " + atualizado;
+        producer.sendMessage("para-tecnico", msg);
         return ResponseEntity.ok(atualizado);
     }
 
-    // Deletar
+    // Deletar professor
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        serv.deletar(id);
+        Professor removido = serv.buscar(id);
+        if (removido != null) {
+            serv.deletar(id);
+            String msg = "Professor removido: " + removido;
+            producer.sendMessage("para-tecnico", msg);
+        }
         return ResponseEntity.noContent().build();
     }
 
@@ -65,7 +87,12 @@ public class ProfessorController {
     public ResponseEntity<Professor> adicionarTurma(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String turma = body.get("turma");
         Professor atualizado = serv.adicionarTurma(id, turma);
-        return (atualizado != null) ? ResponseEntity.ok(atualizado) : ResponseEntity.notFound().build();
+        if (atualizado != null) {
+            String msg = "Turma adicionada ao professor ID " + id + ": " + turma + " -> " + atualizado;
+            producer.sendMessage("para-tecnico", msg);
+            return ResponseEntity.ok(atualizado);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     // Remover turma
@@ -73,7 +100,12 @@ public class ProfessorController {
     public ResponseEntity<Professor> removerTurma(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String turma = body.get("turma");
         Professor atualizado = serv.removerTurma(id, turma);
-        return (atualizado != null) ? ResponseEntity.ok(atualizado) : ResponseEntity.notFound().build();
+        if (atualizado != null) {
+            String msg = "Turma removida do professor ID " + id + ": " + turma + " -> " + atualizado;
+            producer.sendMessage("para-tecnico", msg);
+            return ResponseEntity.ok(atualizado);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     // Adicionar horário
@@ -81,7 +113,12 @@ public class ProfessorController {
     public ResponseEntity<Professor> adicionarHorario(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String horario = body.get("horario");
         Professor atualizado = serv.adicionarHorario(id, horario);
-        return (atualizado != null) ? ResponseEntity.ok(atualizado) : ResponseEntity.notFound().build();
+        if (atualizado != null) {
+            String msg = "Horário adicionado ao professor ID " + id + ": " + horario + " -> " + atualizado;
+            producer.sendMessage("para-tecnico", msg);
+            return ResponseEntity.ok(atualizado);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     // Remover horário
@@ -89,11 +126,17 @@ public class ProfessorController {
     public ResponseEntity<Professor> removerHorario(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String horario = body.get("horario");
         Professor atualizado = serv.removerHorario(id, horario);
-        return (atualizado != null) ? ResponseEntity.ok(atualizado) : ResponseEntity.notFound().build();
+        if (atualizado != null) {
+            String msg = "Horário removido do professor ID " + id + ": " + horario + " -> " + atualizado;
+            producer.sendMessage("para-tecnico", msg);
+            return ResponseEntity.ok(atualizado);
+        }
+        return ResponseEntity.notFound().build();
     }
 
+    // Envio manual de mensagem
     @PostMapping("/enviar-mensagem")
     public void enviarMensagem(@RequestParam String msg) {
-        producer.sendMessage("para-aluno", msg);
+        producer.sendMessage("para-tecnico", "Mensagem manual: " + msg);
     }
 }

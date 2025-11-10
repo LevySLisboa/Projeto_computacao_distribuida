@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # 1. Serviço do Banco de Dados
   postgres_db:
     image: postgres:latest
     container_name: projeto_cd_db
@@ -15,7 +14,6 @@ services:
     ports:
       - "5432:5432"
 
-  # 2. Serviço do Zookeeper
   zookeeper:
     image: zookeeper:3.7
     container_name: zookeeper
@@ -23,9 +21,7 @@ services:
       - "2181:2181"
     environment:
       ALLOW_ANONYMOUS_LOGIN: "yes"
-      ZOOKEEPER_CLIENT_PORT: 2181
 
-  # 3. Serviço do Kafka
   kafka:
     image: apache/kafka:latest
     container_name: kafka
@@ -47,7 +43,19 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 3
 
-  # 4. Serviço da Aplicação Alunos
+  app_usuario:
+    build: ./Usuario
+    container_name: projeto_usuario
+    depends_on:
+      - postgres_db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/projeto_cd
+      SPRING_DATASOURCE_USERNAME: docker
+      SPRING_DATASOURCE_PASSWORD: docker
+      JWT_SECRET: chaveSecretaMuitoSegura
+    ports:
+      - "8083:8080"
+
   app_alunos:
     build: ./Aluno
     container_name: projeto_aluno
@@ -62,7 +70,6 @@ services:
     ports:
       - "8080:8080"
 
-  # 5. Serviço da Aplicação Professor
   app_professor:
     build: ./Professor
     container_name: projeto_professor
@@ -76,20 +83,44 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8081:8080"
+
   app_tecnico_adm:
-   build: ./TecnicoAdministrativo
-   container_name: projeto_adm
-   depends_on:
+    build: ./TecnicoAdministrativo
+    container_name: projeto_adm
+    depends_on:
       - postgres_db
       - kafka
-   environment:
+    environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/projeto_cd
       SPRING_DATASOURCE_USERNAME: docker
       SPRING_DATASOURCE_PASSWORD: docker
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-   ports:
+    ports:
       - "8082:8080"
+
+  api_gateway:
+    build: ./Gateway
+    container_name: projeto_gateway
+    depends_on:
+      - app_usuario
+      - app_alunos
+      - app_professor
+      - app_tecnico_adm
+    environment:
+      SPRING_CLOUD_GATEWAY_ROUTES_0_ID: usuario-service
+      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: http://app_usuario:8080
+      SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0: Path=/api/auth/**
+      SPRING_CLOUD_GATEWAY_ROUTES_1_ID: aluno-service
+      SPRING_CLOUD_GATEWAY_ROUTES_1_URI: http://app_alunos:8080
+      SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_0: Path=/api/aluno/**
+      SPRING_CLOUD_GATEWAY_ROUTES_2_ID: professor-service
+      SPRING_CLOUD_GATEWAY_ROUTES_2_URI: http://app_professor:8080
+      SPRING_CLOUD_GATEWAY_ROUTES_2_PREDICATES_0: Path=/api/professor/**
+      SPRING_CLOUD_GATEWAY_ROUTES_3_ID: tecnico-service
+      SPRING_CLOUD_GATEWAY_ROUTES_3_URI: http://app_tecnico_adm:8080
+      SPRING_CLOUD_GATEWAY_ROUTES_3_PREDICATES_0: Path=/api/admin/**
+    ports:
+      - "8088:8080"
 
 volumes:
   postgres_data:
-

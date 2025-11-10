@@ -1,0 +1,40 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      routes:
+        - id: usuario-service
+          uri: http://app_usuario:8080
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=1
+
+        - id: aluno-service
+          uri: http://app_alunos:8080
+          predicates:
+            - Path=/api/aluno/**
+          filters:
+            - StripPrefix=1
+
+        - id: professor-service
+          uri: http://app_professor:8080
+          predicates:
+            - Path=/api/professor/**
+          filters:
+            - StripPrefix=1
+
+        - id: tecnico-service
+          uri: http://app_tecnico_adm:8080
+          predicates:
+            - Path=/api/admin/**
+          filters:
+            - StripPrefix=1
+
+jwt:
+  secret: ${JWT_SECRET:chaveSecretaMuitoSegura}

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/aluno")
@@ -52,13 +53,11 @@ public class AlunoController {
     }
 
     @GetMapping("/todos")
-    public ResponseEntity<List<Aluno>> acharTodos() {
-        List<Aluno> alunos = serv.acharTodos();
-        StringBuilder msg = new StringBuilder("Listagem completa de alunos (" + alunos.size() + " registros): ");
-        for(Aluno a :alunos){
-            msg.append(a+"\n");
-        }
-        producer.sendMessage("para-tecnico", msg.toString());
-        return ResponseEntity.ok().body(alunos);
+    public CompletableFuture<ResponseEntity<List<Aluno>>> acharTodos() {
+        var alunos =  serv.acharTodos();
+        String msg = "Listagem completa de alunos" + alunos.toString();
+        producer.sendMessage("para-tecnico", msg);
+        return alunos
+                .thenApply(ResponseEntity::ok);
     }
 }

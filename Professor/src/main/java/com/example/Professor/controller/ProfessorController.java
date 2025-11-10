@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/professor")
@@ -29,14 +30,14 @@ public class ProfessorController {
         return ResponseEntity.ok(salvo);
     }
 
-    // Listar todos
     @GetMapping("/todos")
-    public ResponseEntity<List<Professor>> listar() {
-        List<Professor> professores = serv.listar();
-        String msg = "Listagem completa de professores (" + professores.size() + " registros)";
+    public CompletableFuture<ResponseEntity<List<Professor>>> acharTodos() {
+        var professores = serv.listar();
+        String msg = "Listagem completa de professores" + professores.toString();
         producer.sendMessage("para-tecnico", msg);
-        return ResponseEntity.ok(professores);
+        return professores.thenApply(ResponseEntity::ok);
     }
+
 
     // Buscar por ID
     @GetMapping("/{id}")

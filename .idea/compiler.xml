@@ -3,6 +3,12 @@
   <component name="CompilerConfiguration">
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="gateway" />
+      </profile>
       <profile name="Annotation profile for demo" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -14,7 +20,6 @@
         <module name="demo (1) (com.example.TecnicoAdministrativo)" />
         <module name="GestaoTurmas" />
         <module name="demo" />
-        <module name="gateway" />
         <module name="demo (1) (com.example.Usuario)" />
       </profile>
     </annotationProcessing>
@@ -26,7 +31,7 @@
       <module name="demo" options="-parameters" />
       <module name="demo (1) (com.example.TecnicoAdministrativo)" options="-parameters" />
       <module name="demo (1) (com.example.Usuario)" options="-parameters" />
-      <module name="gateway" options="-parameters" />
+      <module name="gateway" options="" />
     </option>
   </component>
 </project>

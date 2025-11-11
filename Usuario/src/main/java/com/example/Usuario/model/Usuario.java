@@ -6,7 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "usuarios",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"email"}),
+        })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,6 +27,9 @@ public class Usuario {
 
     @Column(nullable = false)
     private String senha;
+
+    @Column(nullable = false)
+    private String tipo;
 
     @Column(nullable = false)
     private boolean ativo = true;

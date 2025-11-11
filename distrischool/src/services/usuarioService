@@ -1,0 +1,17 @@
+const API_URL = "http://localhost:8083/auth/";
+
+export async function criarUsuario(dados) {
+  const response = await fetch(API_URL+"register", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(dados),
+  });
+
+  if (!response.ok) {
+    throw new Error("Erro ao registrar usuário");
+  }
+
+  return await response.json();
+}

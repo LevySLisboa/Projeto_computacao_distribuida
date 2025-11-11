@@ -1,5 +1,6 @@
 package com.example.Usuario.controller;
 
+import com.example.Usuario.model.Usuario;
 import com.example.Usuario.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,7 +35,13 @@ public class AuthController {
         resp.setSuccess(true);
         return resp;
     }
-
+    @PostMapping("/register")
+    public Usuario register(@RequestBody Usuario usuario) {
+        if (usuario.getEmail() == null || usuario.getSenha() == null || usuario.getNome() == null) {
+            throw new RuntimeException("Preencha todos os campos obrigatórios!");
+        }
+        return authService.registrar(usuario);
+    }
     @Data
     public static class LoginRequest {
         private String email;

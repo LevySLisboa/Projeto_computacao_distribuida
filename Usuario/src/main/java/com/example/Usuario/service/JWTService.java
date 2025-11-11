@@ -3,6 +3,7 @@ package com.example.Usuario.service;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.Claims;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -10,8 +11,11 @@ import java.util.Date;
 @Service
 public class JWTService {
 
-    private static final String SECRET_KEY = "chaveSuperSecretaTrocarEmProducao";
-    private static final long EXPIRATION_TIME = 3600000; // 1 hora
+    @Value("${jwt.secret}")
+    private String SECRET_KEY;
+
+    @Value("${jwt.expiration}")
+    private long EXPIRATION_TIME;
 
     public String gerarToken(String email) {
         return Jwts.builder()

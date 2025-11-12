@@ -1,35 +1,21 @@
 import React, { useState } from 'react';
-import {
-  Users, BookOpen, Calendar, LogIn, UserPlus, LogOut,
-  Clock, GraduationCap, Trash2, Shield
-} from 'lucide-react';
-import { criarUsuario, loginUsuario } from './services/usuarioService';
-import { listarAlunos, excluirAluno, listarProfessores, excluirProfessor } from './services/adminService';
+import { Users, BookOpen, Calendar, LogIn, UserPlus, LogOut, Clock, GraduationCap, Menu, X, Trash2, Shield } from 'lucide-react';
 
 const DistriSchool = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [view, setView] = useState('login');
-  const [formData, setFormData] = useState({
-    nome: '',
-    email: '',
-    senha: '',
-    tipo: 'aluno'
-  });
-  const [loginData, setLoginData] = useState({
-    email: '',
-    senha: ''
-  });
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  // --- Mock provisório até integração total com o back ---
+  // Dados mockados para demonstração
   const mockTurmas = [
-    { id: 1, nome: 'Matemática Avançada', disciplina: 'Matemática', horario: 'Seg e Qua, 08:00 - 10:00', professor: 'Prof. João Silva' },
-    { id: 2, nome: 'Física Experimental', disciplina: 'Física', horario: 'Ter e Qui, 14:00 - 16:00', professor: 'Prof. Maria Santos' },
-    { id: 3, nome: 'Programação I', disciplina: 'Computação', horario: 'Qua e Sex, 10:00 - 12:00', professor: 'Prof. Carlos Oliveira' },
+    { id: 1, nome: 'Matemática Avançada', disciplina: 'Matemática', horario: 'Segunda e Quarta, 08:00 - 10:00', professor: 'Prof. João Silva' },
+    { id: 2, nome: 'Física Experimental', disciplina: 'Física', horario: 'Terça e Quinta, 14:00 - 16:00', professor: 'Prof. Maria Santos' },
+    { id: 3, nome: 'Programação I', disciplina: 'Computação', horario: 'Quarta e Sexta, 10:00 - 12:00', professor: 'Prof. Carlos Oliveira' },
   ];
 
   const mockMinhasTurmas = [
-    { id: 1, nome: 'Matemática Avançada', disciplina: 'Matemática', horario: 'Seg e Qua, 08:00 - 10:00', professor: 'Prof. João Silva', alunos: 25 },
-    { id: 3, nome: 'Programação I', disciplina: 'Computação', horario: 'Qua e Sex, 10:00 - 12:00', professor: 'Prof. Carlos Oliveira', alunos: 30 },
+    { id: 1, nome: 'Matemática Avançada', disciplina: 'Matemática', horario: 'Segunda e Quarta, 08:00 - 10:00', professor: 'Prof. João Silva', alunos: 25 },
+    { id: 3, nome: 'Programação I', disciplina: 'Computação', horario: 'Quarta e Sexta, 10:00 - 12:00', professor: 'Prof. Carlos Oliveira', alunos: 30 },
   ];
 
   const mockAlunos = [
@@ -37,6 +23,7 @@ const DistriSchool = () => {
     { id: 2, nome: 'Bruno Santos', email: 'bruno.santos@email.com', tipo: 'aluno' },
     { id: 3, nome: 'Carla Oliveira', email: 'carla.oliveira@email.com', tipo: 'aluno' },
     { id: 4, nome: 'Daniel Costa', email: 'daniel.costa@email.com', tipo: 'aluno' },
+    { id: 5, nome: 'Eduardo Lima', email: 'eduardo.lima@email.com', tipo: 'aluno' },
   ];
 
   const mockProfessores = [
@@ -45,101 +32,32 @@ const DistriSchool = () => {
     { id: 3, nome: 'Prof. Carlos Oliveira', email: 'carlos.oliveira@email.com', tipo: 'professor', disciplina: 'Computação' },
   ];
 
-  // --- Funções de autenticação e cadastro ---
-  const handleCadastro = async () => {
-    try {
-      const novoUsuario = await criarUsuario(formData);
-      alert(`Usuário criado com sucesso: ${novoUsuario.nome}`);
-      setFormData({ nome: '', email: '', senha: '', tipo: 'aluno' });
-      setView('login');
-    } catch (err) {
-      alert('Erro ao cadastrar usuário');
-      console.error(err);
-    }
+  const handleLogin = () => {
+    setCurrentUser({ nome: 'Usuário Teste', tipo: 'aluno' });
+    setView('turmas-disponiveis');
   };
 
-  const handleLogin = async () => {
-    try {
-      const resp = await loginUsuario(loginData.email, loginData.senha);
-      if (resp.success && resp.usuario) {
-        setCurrentUser({
-          nome: resp.usuario.nome,
-          email: resp.usuario.email,
-          tipo: resp.usuario.tipo
-        });
-        
-        // Redireciona baseado no tipo de usuário
-        if (resp.usuario.tipo === 'tecnico') {
-          setView('gerenciar-alunos');
-        } else if (resp.usuario.tipo === 'professor') {
-          setView('minhas-turmas');
-        } else {
-          setView('turmas-disponiveis');
-        }
-        
-        setLoginData({ email: '', senha: '' });
-      } else {
-        alert('Email ou senha incorretos');
-      }
-    } catch (err) {
-      alert('Erro ao autenticar');
-      console.error(err);
-    }
+  const handleLoginProfessor = () => {
+    setCurrentUser({ nome: 'Professor Teste', tipo: 'professor' });
+    setView('minhas-turmas');
   };
 
-  const handleDeleteUser = async (userId, userType) => {
-    if (!window.confirm(`Tem certeza que deseja excluir este ${userType}?`)) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      if (userType === 'aluno') {
-        await excluirAluno(userId);
-        alert('Aluno excluído com sucesso!');
-        carregarAlunos(); // Recarrega a lista
-      } else if (userType === 'professor') {
-        await excluirProfessor(userId);
-        alert('Professor excluído com sucesso!');
-        carregarProfessores(); // Recarrega a lista
-      }
-    } catch (error) {
-      alert(`Erro ao excluir ${userType}`);
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLoginDemo = (tipo) => {
-    // Login de demonstração sem backend
-    setCurrentUser({ 
-      nome: `${tipo.charAt(0).toUpperCase() + tipo.slice(1)} Demo`, 
-      tipo: tipo 
-    });
-    
-    if (tipo === 'tecnico') {
-      setView('gerenciar-alunos');
-    } else if (tipo === 'professor') {
-      setView('minhas-turmas');
-    } else {
-      setView('turmas-disponiveis');
-    }
+  const handleLoginTecnico = () => {
+    setCurrentUser({ nome: 'Técnico Administrativo', tipo: 'tecnico' });
+    setView('gerenciar-alunos');
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
     setView('login');
-    setLoginData({ email: '', senha: '' });
   };
 
   const handleDeleteUser = (userId, userType) => {
-    if (window.confirm(`Tem certeza que deseja excluir este ${userType}?`)) {
-      alert(`Integração backend pendente - excluir ${userType} ID: ${userId}`);
+    if (window.confirm(`Tem certeza que deseja excluir este ${userType === 'aluno' ? 'aluno' : 'professor'}?`)) {
+      alert(`Integração com backend pendente - Excluir ${userType} ID: ${userId}`);
     }
   };
 
-  // --- Tela de Login / Cadastro ---
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -157,8 +75,8 @@ const DistriSchool = () => {
               <button
                 onClick={() => setView('login')}
                 className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
-                  view === 'login'
-                    ? 'bg-indigo-600 text-white'
+                  view === 'login' 
+                    ? 'bg-indigo-600 text-white' 
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -168,8 +86,8 @@ const DistriSchool = () => {
               <button
                 onClick={() => setView('register')}
                 className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
-                  view === 'register'
-                    ? 'bg-indigo-600 text-white'
+                  view === 'register' 
+                    ? 'bg-indigo-600 text-white' 
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -185,10 +103,7 @@ const DistriSchool = () => {
                   <input
                     type="email"
                     placeholder="seu@email.com"
-                    value={loginData.email}
-                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
                   />
                 </div>
                 <div>
@@ -196,47 +111,28 @@ const DistriSchool = () => {
                   <input
                     type="password"
                     placeholder="••••••••"
-                    value={loginData.senha}
-                    onChange={(e) => setLoginData({ ...loginData, senha: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
                   />
                 </div>
-                <button
-                  onClick={handleLogin}
-                  className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition"
-                >
-                  Entrar
-                </button>
-                
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">Ou entre como</span>
-                  </div>
-                </div>
-
                 <div className="space-y-2">
                   <button
-                    onClick={() => handleLoginDemo('aluno')}
-                    className="w-full bg-blue-50 text-blue-600 py-2.5 rounded-lg font-medium hover:bg-blue-100 transition"
+                    onClick={handleLogin}
+                    className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition"
                   >
-                    Aluno (Demo)
+                    Entrar como Aluno (Demo)
                   </button>
                   <button
-                    onClick={() => handleLoginDemo('professor')}
-                    className="w-full bg-emerald-50 text-emerald-600 py-2.5 rounded-lg font-medium hover:bg-emerald-100 transition"
+                    onClick={handleLoginProfessor}
+                    className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition"
                   >
-                    Professor (Demo)
+                    Entrar como Professor (Demo)
                   </button>
                   <button
-                    onClick={() => handleLoginDemo('tecnico')}
-                    className="w-full bg-purple-50 text-purple-600 py-2.5 rounded-lg font-medium hover:bg-purple-100 transition"
+                    onClick={handleLoginTecnico}
+                    className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition"
                   >
                     <Shield className="inline mr-2" size={18} />
-                    Técnico Administrativo (Demo)
+                    Entrar como Técnico (Demo)
                   </button>
                 </div>
               </div>
@@ -246,9 +142,7 @@ const DistriSchool = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
                   <input
                     type="text"
-                    placeholder="Nome completo"
-                    value={formData.nome}
-                    onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                    placeholder="Seu nome completo"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
@@ -257,8 +151,6 @@ const DistriSchool = () => {
                   <input
                     type="email"
                     placeholder="seu@email.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
@@ -267,25 +159,27 @@ const DistriSchool = () => {
                   <input
                     type="password"
                     placeholder="••••••••"
-                    value={formData.senha}
-                    onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar Senha</label>
+                  <input
+                    type="password"
+                    placeholder="••••••••"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Usuário</label>
-                  <select
-                    value={formData.tipo}
-                    onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  >
+                  <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
                     <option value="aluno">Aluno</option>
                     <option value="professor">Professor</option>
                     <option value="tecnico">Técnico Administrativo</option>
                   </select>
                 </div>
                 <button
-                  onClick={handleCadastro}
+                  onClick={() => alert('Funcionalidade de cadastro será integrada com o backend')}
                   className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition"
                 >
                   Cadastrar
@@ -298,18 +192,15 @@ const DistriSchool = () => {
     );
   }
 
-  // --- Área logada (Aluno, Professor, Técnico) ---
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div
-                className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  currentUser.tipo === 'tecnico' ? 'bg-purple-600' : 'bg-indigo-600'
-                }`}
-              >
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                currentUser.tipo === 'tecnico' ? 'bg-purple-600' : 'bg-indigo-600'
+              }`}>
                 {currentUser.tipo === 'tecnico' ? (
                   <Shield className="text-white" size={24} />
                 ) : (
@@ -318,9 +209,7 @@ const DistriSchool = () => {
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-xl font-bold text-gray-800">DistriSchool</h1>
-                <p className="text-sm text-gray-600">
-                  {currentUser.nome} - {currentUser.tipo}
-                </p>
+                <p className="text-sm text-gray-600">{currentUser.nome} - {currentUser.tipo}</p>
               </div>
             </div>
             <button
@@ -337,7 +226,6 @@ const DistriSchool = () => {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {currentUser.tipo === 'tecnico' ? (
           <>
-            {/* --- Técnico Administrativo --- */}
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
               <button
                 onClick={() => setView('gerenciar-alunos')}
@@ -347,7 +235,8 @@ const DistriSchool = () => {
                     : 'bg-white text-gray-600 hover:bg-gray-100 shadow-sm'
                 }`}
               >
-                <Users className="inline mr-2" size={18} /> Gerenciar Alunos
+                <Users className="inline mr-2" size={18} />
+                Gerenciar Alunos
               </button>
               <button
                 onClick={() => setView('gerenciar-professores')}
@@ -357,7 +246,8 @@ const DistriSchool = () => {
                     : 'bg-white text-gray-600 hover:bg-gray-100 shadow-sm'
                 }`}
               >
-                <GraduationCap className="inline mr-2" size={18} /> Gerenciar Professores
+                <GraduationCap className="inline mr-2" size={18} />
+                Gerenciar Professores
               </button>
             </div>
 
@@ -369,22 +259,14 @@ const DistriSchool = () => {
                     <table className="w-full">
                       <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Nome
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Email
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Tipo
-                          </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Ações
-                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {mockAlunos.map((aluno) => (
+                        {mockAlunos.map(aluno => (
                           <tr key={aluno.id} className="hover:bg-gray-50 transition">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm font-medium text-gray-900">{aluno.nome}</div>
@@ -423,22 +305,14 @@ const DistriSchool = () => {
                     <table className="w-full">
                       <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Nome
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Email
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Disciplina
-                          </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Ações
-                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Disciplina</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {mockProfessores.map((professor) => (
+                        {mockProfessores.map(professor => (
                           <tr key={professor.id} className="hover:bg-gray-50 transition">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm font-medium text-gray-900">{professor.nome}</div>
@@ -471,7 +345,6 @@ const DistriSchool = () => {
           </>
         ) : (
           <>
-            {/* --- Professor e Aluno --- */}
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
               <button
                 onClick={() => setView('minhas-turmas')}
@@ -618,4 +491,23 @@ const DistriSchool = () => {
                     <textarea
                       rows="4"
                       placeholder="Descreva o conteúdo e objetivos da turma..."
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                    />
+                  </div>
+                  <button
+                    onClick={() => alert('Integração com backend pendente')}
+                    className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition"
+                  >
+                    Criar Turma
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default DistriSchool;

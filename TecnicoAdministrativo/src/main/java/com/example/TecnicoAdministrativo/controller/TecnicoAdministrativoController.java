@@ -1,5 +1,6 @@
 package com.example.TecnicoAdministrativo.controller;
 
+import com.example.TecnicoAdministrativo.controller.clients.AlunoClient;
 import com.example.TecnicoAdministrativo.model.TecnicoAdministrativo;
 import com.example.TecnicoAdministrativo.service.TecnicoAdministrativoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,19 +11,21 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/tecnicoadministrativo")
+@RequestMapping("/admin")
 public class TecnicoAdministrativoController {
     @Autowired
     private TecnicoAdministrativoService service;
+    @Autowired
+    private AlunoClient alunoClient;
 
     @PostMapping("/criarTecnicoAdministrativo")
-    public ResponseEntity<TecnicoAdministrativo> criar(@RequestBody TecnicoAdministrativo tecnicoAdministrativo){
+    public ResponseEntity<TecnicoAdministrativo> criar(@RequestBody TecnicoAdministrativo tecnicoAdministrativo) {
         TecnicoAdministrativo salvo = service.salvar(tecnicoAdministrativo);
         return ResponseEntity.ok(salvo);
     }
 
-    @GetMapping ("/todos")
-    public ResponseEntity<List<TecnicoAdministrativo>> buscarTodos(){
+    @GetMapping("/todos")
+    public ResponseEntity<List<TecnicoAdministrativo>> buscarTodos() {
         return ResponseEntity.ok(service.listar());
     }
 
@@ -38,4 +41,22 @@ public class TecnicoAdministrativoController {
         service.deletar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/alunos")
+    public ResponseEntity<?> listarAlunos() {
+        return ResponseEntity.ok(alunoClient.listarAlunos());
+    }
+
+    @GetMapping("/alunos/{matricula}")
+    public ResponseEntity<?> buscarAlunoPorMatricula(@PathVariable Long matricula) {
+        var aluno = alunoClient.acharPorMatricula(matricula);
+        return ResponseEntity.ok(aluno);
+    }
+
+    @DeleteMapping("/alunos/{id}")
+    public ResponseEntity<?> excluirAluno(@PathVariable Long id) {
+        alunoClient.deletarAluno(id);
+        return ResponseEntity.ok(Map.of("message", "Aluno excluído com sucesso"));
+    }
+
 }

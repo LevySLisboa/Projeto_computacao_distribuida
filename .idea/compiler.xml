@@ -19,6 +19,7 @@
         <module name="Professor" />
         <module name="demo (1) (com.example.TecnicoAdministrativo)" />
         <module name="GestaoTurmas" />
+        <module name="demo (2) (com.example.TecnicoAdministrativo)" />
         <module name="demo" />
         <module name="demo (1) (com.example.Usuario)" />
       </profile>
@@ -29,8 +30,11 @@
       <module name="GestaoTurmas" options="-parameters" />
       <module name="Professor" options="-parameters" />
       <module name="demo" options="-parameters" />
+      <module name="demo (1) (com.example)" options="-parameters" />
       <module name="demo (1) (com.example.TecnicoAdministrativo)" options="-parameters" />
       <module name="demo (1) (com.example.Usuario)" options="-parameters" />
+      <module name="demo (2) (com.example.TecnicoAdministrativo)" options="-parameters" />
+      <module name="demo (3) (com.example.Usuario)" options="-parameters" />
       <module name="gateway" options="" />
     </option>
   </component>

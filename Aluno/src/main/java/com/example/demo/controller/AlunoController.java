@@ -21,7 +21,6 @@ public class AlunoController {
     @Autowired
     private KafkaProducer producer;
 
-    // ✅ Criar novo aluno
     @PostMapping("/criarAluno")
     public ResponseEntity<Aluno> criarAluno(@RequestBody Aluno aluno) {
         Aluno salvo = serv.criarALuno(aluno);
@@ -38,7 +37,6 @@ public class AlunoController {
         return ResponseEntity.ok(salvo);
     }
 
-    // ✅ Atualizar aluno existente
     @PostMapping("/atualizarAluno")
     public ResponseEntity<Aluno> atualizarAluno(@RequestBody Aluno aluno) {
         Aluno atualizado = serv.atualizarAluno(aluno);
@@ -55,7 +53,6 @@ public class AlunoController {
         return ResponseEntity.ok(atualizado);
     }
 
-    // ✅ Deletar aluno por matrícula
     @DeleteMapping("/{matricula}")
     public ResponseEntity<Void> deletarAluno(@PathVariable("matricula") Long matricula) {
         Aluno removido = serv.acharPorMatricula(matricula);
@@ -73,7 +70,6 @@ public class AlunoController {
         return ResponseEntity.noContent().build();
     }
 
-    // ✅ Buscar aluno por matrícula
     @GetMapping("/{matricula}")
     public ResponseEntity<Aluno> acharPorMatricula(@PathVariable("matricula") Long matricula) {
         Aluno aluno = serv.acharPorMatricula(matricula);

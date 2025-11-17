@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -20,6 +21,7 @@ public class AlunoService {
 
     @Autowired
     private AlunoRepository repo;
+    private final Random random = new Random();
 
 
     public Aluno criarALuno(Aluno aluno) {
@@ -38,6 +40,7 @@ public class AlunoService {
     @TimeLimiter(name = "alunoService")
     public CompletableFuture<List<Aluno>> acharTodos() {
         log.info("Tentando buscar alunos...");
+        simularFalhaComProbabilidade();
         return CompletableFuture.supplyAsync(repo::findAll);
     }
 
@@ -113,5 +116,10 @@ public class AlunoService {
                 .build();
 
         return CompletableFuture.completedFuture(List.of(alunoPadrao));
+    }
+    private void simularFalhaComProbabilidade() {
+        if (random.nextInt(10) < 7) { // 70% de chance de falhar
+            throw new RuntimeException("Falha simulada no serviço de produtos");
+        }
     }
 }

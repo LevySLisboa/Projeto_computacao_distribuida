@@ -23,7 +23,7 @@ public class UsuarioController {
     // ✅ Listar todos os usuários
     @GetMapping("listarTodos")
     public ResponseEntity<List<Usuario>> listar() {
-        List<Usuario> usuarios = usuarioService.listar();
+        List<Usuario> usuarios = usuarioService.listar( );
         return ResponseEntity.ok(usuarios);
     }
 

@@ -1,6 +1,7 @@
 package com.example.TecnicoAdministrativo.controller;
 
 import com.example.TecnicoAdministrativo.controller.clients.AlunoClient;
+import com.example.TecnicoAdministrativo.controller.clients.ProfessorClient;
 import com.example.TecnicoAdministrativo.model.TecnicoAdministrativo;
 import com.example.TecnicoAdministrativo.service.TecnicoAdministrativoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,11 @@ import java.util.Map;
 public class TecnicoAdministrativoController {
     @Autowired
     private TecnicoAdministrativoService service;
+
     @Autowired
     private AlunoClient alunoClient;
+    @Autowired
+    private ProfessorClient professorClient;
 
     @PostMapping("/criarTecnicoAdministrativo")
     public ResponseEntity<TecnicoAdministrativo> criar(@RequestBody TecnicoAdministrativo tecnicoAdministrativo) {
@@ -57,6 +61,22 @@ public class TecnicoAdministrativoController {
     public ResponseEntity<?> excluirAluno(@PathVariable Long id) {
         alunoClient.deletarAluno(id);
         return ResponseEntity.ok(Map.of("message", "Aluno excluído com sucesso"));
+    }
+    @GetMapping("/professores")
+    public ResponseEntity<?> listarProfessores() {
+        return ResponseEntity.ok(professorClient.listarProfessores());
+    }
+
+    @GetMapping("/professores/{matricula}")
+    public ResponseEntity<?> buscarProfessorPorMatricula(@PathVariable Long matricula) {
+        var professor= professorClient.acharPorMatricula(matricula);
+        return ResponseEntity.ok(professor);
+    }
+
+    @DeleteMapping("/professores/{id}")
+    public ResponseEntity<?> excluirProfessor(@PathVariable Long id) {
+        professorClient.deletarProfessor(id);
+        return ResponseEntity.ok(Map.of("message", "Professor excluído com sucesso"));
     }
 
 }

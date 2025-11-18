@@ -14,7 +14,7 @@ public interface AlunoClient {
     @GetMapping("/{matricula}")
     AlunoDTO acharPorMatricula(@PathVariable("matricula") Long matricula);
 
-    @DeleteMapping("/deletar/{id}")
+    @DeleteMapping("/{id}")
     void deletarAluno(@PathVariable Long id);
 }
 

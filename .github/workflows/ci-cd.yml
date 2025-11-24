@@ -1,0 +1,98 @@
+name: CI-CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  #integracao continua
+  build:
+    name: Build & Test Microservices
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      #build dos Microserviços
+      - name: Build Usuario
+        run: mvn -B -f Usuario/pom.xml clean package
+
+      - name: Build Aluno
+        run: mvn -B -f Aluno/pom.xml clean package
+
+      - name: Build Professor
+        run: mvn -B -f Professor/pom.xml clean package
+
+      - name: Build Técnico Administrativo
+        run: mvn -B -f TecnicoAdministrativo/pom.xml clean package
+
+      - name: Build Gateway
+        run: mvn -B -f Gateway/pom.xml clean package
+
+
+      #docker login
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      #docker duild e push
+      - name: Build and Push Usuario
+        run: |
+          docker build -t ${{ secrets.DOCKER_USER }}/usuario:latest ./Usuario
+          docker push ${{ secrets.DOCKER_USER }}/usuario:latest
+
+      - name: Build and Push Aluno
+        run: |
+          docker build -t ${{ secrets.DOCKER_USER }}/aluno:latest ./Aluno
+          docker push ${{ secrets.DOCKER_USER }}/aluno:latest
+
+      - name: Build and Push Professor
+        run: |
+          docker build -t ${{ secrets.DOCKER_USER }}/professor:latest ./Professor
+          docker push ${{ secrets.DOCKER_USER }}/professor:latest
+
+      - name: Build and Push Técnico Administrativo
+        run: |
+          docker build -t ${{ secrets.DOCKER_USER }}/adm:latest ./TecnicoAdministrativo
+          docker push ${{ secrets.DOCKER_USER }}/adm:latest
+
+      - name: Build and Push Gateway
+        run: |
+          docker build -t ${{ secrets.DOCKER_USER }}/gateway:latest ./Gateway
+          docker push ${{ secrets.DOCKER_USER }}/gateway:latest
+
+  #deploy continuo
+  deploy:
+    name: Deploy no Servidor
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Acessa Servidor via SSH e Faz Deploy
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /projeto_cd/
+            docker pull ${{ secrets.DOCKER_USER }}/usuario:latest
+            docker pull ${{ secrets.DOCKER_USER }}/aluno:latest
+            docker pull ${{ secrets.DOCKER_USER }}/professor:latest
+            docker pull ${{ secrets.DOCKER_USER }}/adm:latest
+            docker pull ${{ secrets.DOCKER_USER }}/gateway:latest
+
+            docker compose down
+            docker compose up -d --build

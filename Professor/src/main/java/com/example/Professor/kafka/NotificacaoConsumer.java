@@ -16,7 +16,7 @@ public class NotificacaoConsumer {
     private final NotificacaoService notificacaoService;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    @KafkaListener(topics = "para-professor", groupId = "notificacao-group")
+//    @KafkaListener(topics = "para-professor", groupId = "notificacao-group")
     public void consumirMensagem(String mensagem) {
         try {
             NotificacaoEvento evento = mapper.readValue(mensagem, NotificacaoEvento.class);

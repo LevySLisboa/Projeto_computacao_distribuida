@@ -12,15 +12,15 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Turma {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-    private String name;
-    private Long professorId;
-
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "turma_alunos", joinColumns = @JoinColumn(name = "turma_id"))
-    @Column(name = "aluno_id")
-    private List<Long> alunosIds;
+        private String name;
+        private Long professorId;
+        private String horario;
+        @ElementCollection(fetch = FetchType.EAGER)
+        @CollectionTable(name = "turma_alunos", joinColumns = @JoinColumn(name = "turma_id"))
+        @Column(name = "aluno_id")
+        private List<Long> alunosIds;
 }

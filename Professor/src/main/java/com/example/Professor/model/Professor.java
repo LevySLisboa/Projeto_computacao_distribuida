@@ -28,12 +28,8 @@ public class Professor {
     private String senha_hash;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "professor_turmas", joinColumns = @JoinColumn(name = "professor_id"))
-    @Column(name = "turma")
-    private List<String> turmas;
-
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "professor_horarios", joinColumns = @JoinColumn(name = "professor_id"))
-    @Column(name = "horario")
-    private List<String> horarios;
+    @CollectionTable(name = "professor_turmas",
+            joinColumns = @JoinColumn(name = "professor_id"))
+    @Column(name = "turma_id")
+    private List<Long> turmasIds;
 }

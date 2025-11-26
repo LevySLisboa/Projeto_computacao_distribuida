@@ -5,16 +5,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name = "aluno-service", url = "http://localhost:8080/aluno")//mudar localhost por app_alunos quando subir pro docker
+@FeignClient(name = "aluno-service", url = "http://app-alunos:8080")//mudar localhost por app_alunos quando subir pro docker
 public interface AlunoClient {
 
-    @GetMapping("/todos")
+    @GetMapping("/aluno/todos")
     List<AlunoDTO> listarAlunos();
 
-    @GetMapping("/{matricula}")
+    @GetMapping("/aluno/{matricula}")
     AlunoDTO acharPorMatricula(@PathVariable("matricula") Long matricula);
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/aluno/{id}")
     void deletarAluno(@PathVariable Long id);
 }
 

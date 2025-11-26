@@ -9,4 +9,9 @@ public class AlunoDTO {
     private String name;
     private String email;
     private String curso;
+
+    public AlunoDTO(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 }

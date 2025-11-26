@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: "aluno-service"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["app-alunos:8080"]
+
+  - job_name: "professor-service"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["app-professor:8080"]
+
+  - job_name: "usuario-service"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["app-usuario:8080"]
+
+  - job_name: "adm-service"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["app-tecnico-adm:8080"]

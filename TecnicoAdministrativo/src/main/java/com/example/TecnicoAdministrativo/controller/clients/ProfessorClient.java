@@ -8,14 +8,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@FeignClient(name = "professor-service", url = "http://localhost:8081/professor")//mudar localhost por app_professora quando subir pro docker
+@FeignClient(name = "professor-service", url = "http://app-professor:8080")
 public interface ProfessorClient {
-    @GetMapping("/todos")
+    @GetMapping("/professor/todos")
     List<ProfessorDTO> listarProfessores();
 
-    @GetMapping("/{matricula}")
-    ProfessorDTO acharPorMatricula(@PathVariable("matricula") Long matricula);
+    @GetMapping("/professor/{id}")
+    ProfessorDTO acharPorId(@PathVariable("id") Long id);
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/professor/{id}")
     void deletarProfessor(@PathVariable Long id);
 }

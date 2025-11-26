@@ -1,0 +1,104 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-11-25T19:43:36.786Z",
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "wrk_1",
+      "name": "Gestão de Turmas - API",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "fld_1",
+      "parentId": "wrk_1",
+      "name": "Turmas",
+      "description": "Endpoints do TurmaController",
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_1",
+      "parentId": "fld_1",
+      "name": "1. CRIAR TURMA (POST)",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Turma de Cálculo I\",\n  \"professorId\": 101, \n  \"alunosIds\": [201, 202, 203]\n}"
+      },
+      "url": "http://localhost:8080/turmas",
+      "description": "Cria uma nova turma. Professor e Alunos são validados por microserviços externos.",
+      "settingDisableRenderRequestBody": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_2",
+      "parentId": "fld_1",
+      "name": "2. ADICIONAR ALUNOS (POST)",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "[\n  204, \n  205\n]"
+      },
+      "url": "http://localhost:8080/turmas/{{turmaId}}/adicionar-alunos",
+      "description": "Adiciona uma lista de IDs de alunos a uma turma existente. Substitua {{turmaId}} pelo ID.",
+      "settingDisableRenderRequestBody": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_3",
+      "parentId": "fld_1",
+      "name": "3. REMOVER ALUNO (DELETE)",
+      "method": "DELETE",
+      "body": {},
+      "url": "http://localhost:8080/turmas/{{turmaId}}/remover-aluno/{{alunoId}}",
+      "description": "Remove um único aluno da turma. Substitua {{turmaId}} e {{alunoId}}.",
+      "settingDisableRenderRequestBody": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_4",
+      "parentId": "fld_1",
+      "name": "4. DEFINIR PROFESSOR (POST)",
+      "method": "POST",
+      "body": {},
+      "url": "http://localhost:8080/turmas/{{turmaId}}/professor/{{professorId}}",
+      "description": "Define ou altera o professor da turma. Substitua {{turmaId}} e {{professorId}}.",
+      "settingDisableRenderRequestBody": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_5",
+      "parentId": "fld_1",
+      "name": "5. REMOVER TURMA (DELETE)",
+      "method": "DELETE",
+      "body": {},
+      "url": "http://localhost:8080/turmas/{{turmaId}}",
+      "description": "Remove uma turma pelo ID. Substitua {{turmaId}}.",
+      "settingDisableRenderRequestBody": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_6",
+      "parentId": "fld_1",
+      "name": "6. BUSCAR TURMA POR ID (GET)",
+      "method": "GET",
+      "body": {},
+      "url": "http://localhost:8080/turmas/{{turmaId}}",
+      "description": "Busca uma turma pelo ID. Substitua {{turmaId}}.",
+      "settingDisableRenderRequestBody": false,
+      "_type": "request"
+    },
+    {
+      "_id": "req_7",
+      "parentId": "fld_1",
+      "name": "7. LISTAR TODAS AS TURMAS (GET)",
+      "method": "GET",
+      "body": {},
+      "url": "http://localhost:8080/turmas",
+      "description": "Lista todas as turmas cadastradas.",
+      "settingDisableRenderRequestBody": false,
+      "_type": "request"
+    }
+  ]
+}

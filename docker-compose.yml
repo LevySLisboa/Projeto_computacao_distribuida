@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  postgres_db:
+  postgres-db:
     image: postgres:latest
-    container_name: projeto_cd_db
+    container_name: projeto-cd-db
     restart: always
     environment:
       POSTGRES_USER: docker
@@ -13,6 +13,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - projeto_network
 
   zookeeper:
     image: zookeeper:3.7
@@ -21,6 +23,8 @@ services:
       - "2181:2181"
     environment:
       ALLOW_ANONYMOUS_LOGIN: "yes"
+    networks:
+      - projeto_network
 
   kafka:
     image: apache/kafka:latest
@@ -42,85 +46,147 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 3
+    networks:
+      - projeto_network
 
-  app_usuario:
+  app-usuario:
     build: ./Usuario
-    container_name: projeto_usuario
+    container_name: projeto-usuario
     depends_on:
-      - postgres_db
+      - postgres-db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/projeto_cd
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/projeto_cd
       SPRING_DATASOURCE_USERNAME: docker
       SPRING_DATASOURCE_PASSWORD: docker
       JWT_SECRET: chaveSecretaMuitoSegura
     ports:
       - "8083:8080"
+    networks:
+      - projeto_network
 
-  app_alunos:
+  app-alunos:
     build: ./Aluno
-    container_name: projeto_aluno
+    container_name: projeto-aluno
     depends_on:
-      - postgres_db
+      - postgres-db
       - kafka
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/projeto_cd
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/projeto_cd
       SPRING_DATASOURCE_USERNAME: docker
       SPRING_DATASOURCE_PASSWORD: docker
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8080:8080"
+    networks:
+      - projeto_network
 
-  app_professor:
+  app-professor:
     build: ./Professor
-    container_name: projeto_professor
+    container_name: projeto-professor
     depends_on:
-      - postgres_db
+      - postgres-db
       - kafka
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/projeto_cd
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/projeto_cd
       SPRING_DATASOURCE_USERNAME: docker
       SPRING_DATASOURCE_PASSWORD: docker
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8081:8080"
+    networks:
+      - projeto_network
 
-  app_tecnico_adm:
+  app-tecnico-adm:
     build: ./TecnicoAdministrativo
-    container_name: projeto_adm
+    container_name: projeto-adm
     depends_on:
-      - postgres_db
+      - postgres-db
       - kafka
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/projeto_cd
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/projeto_cd
       SPRING_DATASOURCE_USERNAME: docker
       SPRING_DATASOURCE_PASSWORD: docker
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8082:8080"
+    networks:
+      - projeto_network
 
-  api_gateway:
+  api-gateway:
     build: ./Gateway
-    container_name: projeto_gateway
+    container_name: projeto-gateway
     depends_on:
-      - app_usuario
-      - app_alunos
-      - app_professor
-      - app_tecnico_adm
+      - app-usuario
+      - app-alunos
+      - app-professor
+      - app-tecnico-adm
     environment:
       SPRING_CLOUD_GATEWAY_ROUTES_0_ID: usuario-service
-      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: http://app_usuario:8080
+      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: http://app-usuario:8080
       SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0: Path=/api/auth/**
       SPRING_CLOUD_GATEWAY_ROUTES_1_ID: aluno-service
-      SPRING_CLOUD_GATEWAY_ROUTES_1_URI: http://app_alunos:8080
+      SPRING_CLOUD_GATEWAY_ROUTES_1_URI: http://app-alunos:8080
       SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_0: Path=/api/aluno/**
       SPRING_CLOUD_GATEWAY_ROUTES_2_ID: professor-service
-      SPRING_CLOUD_GATEWAY_ROUTES_2_URI: http://app_professor:8080
+      SPRING_CLOUD_GATEWAY_ROUTES_2_URI: http://app-professor:8080
       SPRING_CLOUD_GATEWAY_ROUTES_2_PREDICATES_0: Path=/api/professor/**
       SPRING_CLOUD_GATEWAY_ROUTES_3_ID: tecnico-service
-      SPRING_CLOUD_GATEWAY_ROUTES_3_URI: http://app_tecnico_adm:8080
+      SPRING_CLOUD_GATEWAY_ROUTES_3_URI: http://app-tecnico-adm:8080
       SPRING_CLOUD_GATEWAY_ROUTES_3_PREDICATES_0: Path=/api/admin/**
     ports:
       - "8088:8080"
+    networks:
+      - projeto_network
+  
+  app-gestao-turmas:
+    build: ./GestaoTurmas
+    container_name: projeto-gestao-turmas
+    depends_on:
+      - postgres-db
+      - kafka
+      - app-professor
+      - app-alunos
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/projeto_cd
+      SPRING_DATASOURCE_USERNAME: docker
+      SPRING_DATASOURCE_PASSWORD: docker
+
+      # Kafka
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8089:8080"
+    networks:
+      - projeto_network
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - app-usuario
+      - app-alunos
+      - app-professor
+      - app-tecnico-adm
+    networks:
+      - projeto_network
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - projeto_network
 
 volumes:
   postgres_data:
+
+networks:
+  projeto_network:
+    driver: bridge
+

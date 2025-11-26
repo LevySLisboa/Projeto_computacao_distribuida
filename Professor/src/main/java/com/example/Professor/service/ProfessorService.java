@@ -1,6 +1,9 @@
 package com.example.Professor.service;
 
 import com.example.Professor.model.Professor;
+import com.example.Professor.model.dto.ProfessorDetalheDTO;
+import com.example.Professor.model.dto.TurmaDTO;
+import com.example.Professor.model.dto.TurmaLightDTO;
 import com.example.Professor.repository.ProfessorRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -11,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -20,6 +24,12 @@ public class ProfessorService {
 
     @Autowired
     private ProfessorRepository repo;
+
+    @Autowired
+    private TurmaClient turmaClient;
+
+    @Autowired
+    private AlunoClient alunoClient;
 
     public Professor salvar(Professor professor) {
         repo.findByCpf(professor.getCpf()).ifPresent(a -> {
@@ -40,10 +50,34 @@ public class ProfessorService {
         return CompletableFuture.supplyAsync(repo::findAll);
     }
 
-
-    public Professor buscar(Long id) {
+    public Professor buscar(Long id){
         return repo.findById(id).orElse(null);
     }
+
+    public ProfessorDetalheDTO buscarComTurmas(Long id) {
+        Professor prof = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Professor não encontrado"));
+
+        // Apenas retorna os IDs das turmas, sem chamar turmas
+        List<TurmaDTO> turmas = prof.getTurmasIds().stream()
+                .map(turmaId -> {
+                    TurmaLightDTO t = turmaClient.buscarTurmaLight(turmaId);
+                    return new TurmaDTO(t.id(), t.name(), t.horario());
+                })
+                .toList();
+
+
+
+        return new ProfessorDetalheDTO(
+                prof.getId(),
+                prof.getName(),
+                prof.getEmail(),
+                prof.getCpf(),
+                prof.getCurso(),
+                turmas
+        );
+    }
+
 
     public void deletar(Long id) {
         log.info("Removendo aluno com matrícula: {}", id);
@@ -53,41 +87,33 @@ public class ProfessorService {
         repo.deleteById(id);
     }
 
-    public Professor adicionarTurma(Long professorId, String turma) {
-        Professor p = buscar(professorId);
-        if (p == null) return null;
+    public Professor adicionarTurma(Long professorId, Long turmaId) {
+        Professor prof = repo.findById(professorId)
+                .orElseThrow(() -> new RuntimeException("Professor não encontrado"));
 
-        if (!p.getTurmas().contains(turma)) {
-            p.getTurmas().add(turma);
+        // lista de turmas (List<Long>)
+        List<Long> turmas = prof.getTurmasIds();
+
+        if (!turmas.contains(turmaId)) {
+            turmas.add(turmaId);
         }
-        return repo.save(p);
+
+        prof.setTurmasIds(turmas);
+
+        return repo.save(prof);
     }
 
-    public Professor removerTurma(Long professorId, String turma) {
+
+
+    public Professor removerTurma(Long professorId, Long turmaId) {
         Professor p = buscar(professorId);
-        if (p == null) return null;
-
-        p.getTurmas().remove(turma);
+        if (p == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Professor não encontrado");
+        boolean removed = p.getTurmasIds().removeIf(id -> id.equals(turmaId));
+        if (!removed)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Turma não estava associada ao professor");
         return repo.save(p);
     }
 
-    public Professor adicionarHorario(Long professorId, String horario) {
-        Professor p = buscar(professorId);
-        if (p == null) return null;
-
-        if (!p.getHorarios().contains(horario)) {
-            p.getHorarios().add(horario);
-        }
-        return repo.save(p);
-    }
-
-    public Professor removerHorario(Long professorId, String horario) {
-        Professor p = buscar(professorId);
-        if (p == null) return null;
-
-        p.getHorarios().remove(horario);
-        return repo.save(p);
-    }
 
     public Professor atualizarProfessor(Professor newProfessor) {
         Long id = newProfessor.getId();
@@ -124,8 +150,7 @@ public class ProfessorService {
 
         if (newProfessor.getName() != null) professor.setName(newProfessor.getName());
         if (newProfessor.getCurso() != null) professor.setCurso(newProfessor.getCurso());
-        if (newProfessor.getTurmas() != null) professor.setTurmas(newProfessor.getTurmas());
-        if (newProfessor.getHorarios() != null) professor.setHorarios(newProfessor.getHorarios());
+        if (newProfessor.getTurmasIds() != null) professor.setTurmasIds(newProfessor.getTurmasIds());
 
         if (newProfessor.getSenha_hash() != null && !newProfessor.getSenha_hash().isBlank()) {
             log.warn("Atualização de senha via atualizarProfessor não é recomendada. Implemente fluxo dedicado.");
@@ -137,6 +162,8 @@ public class ProfessorService {
         return atualizado;
     }
 
+
+
     public CompletableFuture<List<Professor>> fallbackListarProfessores(Exception ex) {
         log.warn("Fallback acionado: {}", ex.getMessage());
 
@@ -147,11 +174,11 @@ public class ProfessorService {
                 .senha_hash("")
                 .email("indisponivel@exemplo.com")
                 .curso("Serviço temporariamente fora do ar")
-                .turmas(List.of("Nenhuma turma disponível"))
-                .horarios(List.of("Nenhum horario disponível"))
+                .turmasIds(List.of()) // agora lista vazia de Turma
                 .build();
 
         return CompletableFuture.completedFuture(List.of(professorPadrao));
     }
+
 }
 

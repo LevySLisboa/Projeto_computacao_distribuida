@@ -67,9 +67,9 @@ public class TecnicoAdministrativoController {
         return ResponseEntity.ok(professorClient.listarProfessores());
     }
 
-    @GetMapping("/professores/{matricula}")
-    public ResponseEntity<?> buscarProfessorPorMatricula(@PathVariable Long matricula) {
-        var professor= professorClient.acharPorMatricula(matricula);
+    @GetMapping("/professores/{id}")
+    public ResponseEntity<?> buscarProfessorPorId(@PathVariable Long id) {
+        var professor= professorClient.acharPorId(id);
         return ResponseEntity.ok(professor);
     }
 
